@@ -1,14 +1,13 @@
-
 ########################################################
 ### Script to get required data from sqlite database ###
 ########################################################
 
 from pathlib import Path
 import sqlite3
-import polars as pl
+import pandas as pd
 from contextlib import contextmanager
 
-# Define the database path (adjust if needed)
+# Define the database path
 project_root = Path(__file__).resolve().parents[2]
 DB_PATH = Path("C:/Users/JohnK/unsynced_footballdb1/footballdb1.sqlite")
 
@@ -48,7 +47,7 @@ def get_shots():
         cursor.execute(query)
         rows = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
-        df = pl.DataFrame(rows, schema=columns, orient="row")
+        df = pd.DataFrame(rows, columns=columns)
     return df
 
 def get_cards():
@@ -74,24 +73,46 @@ def get_cards():
         cursor.execute(query)
         rows = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
-        df = pl.DataFrame(rows, schema=columns, orient="row")
+        df = pd.DataFrame(rows, columns=columns)
     return df
 
-def get_xwalk():
-
+def get_goals():
     query = """
-        SELECT * FROM Team_Crosswalk
+        SELECT 
+            M.match_date, 
+            C.competition_name, 
+            HT.team_name AS home_team, 
+            M.home_team_id, 
+            AT.team_name AS away_team, 
+            M.away_team_id,
+            Goal.*, 
+            CASE WHEN Goal.team_id = HT.team_id THEN 1 ELSE 0 END AS home_team_goal
+        FROM Goal
+        JOIN "Match" M ON M.match_id = Goal.match_id
+        JOIN Team HT ON HT.team_id = M.home_team_id
+        JOIN Team AT ON AT.team_id = M.away_team_id
+        JOIN Competition C ON C.competition_id = M.competition_id
+        WHERE M.competition_id IN (9, 11, 12, 13, 20);
     """
 
     with get_db_connection() as cursor:
         cursor.execute(query)
         rows = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
-        df = pl.DataFrame(rows, schema=columns, orient="row")
+        df = pd.DataFrame(rows, columns=columns)
+    return df
+
+def get_xwalk():
+    query = "SELECT * FROM Team_Crosswalk"
+
+    with get_db_connection() as cursor:
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+        df = pd.DataFrame(rows, columns=columns)
     return df
 
 def get_odds():
-
     query = """
         SELECT * FROM Football_Data
         WHERE league IN ('Serie A', 'Premier League', 'Bundesliga', 'Primera Division', 'Ligue 1')
@@ -103,5 +124,8 @@ def get_odds():
         cursor.execute(query)
         rows = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
-        df = pl.DataFrame(rows, schema=columns, orient="row")
+        df = pd.DataFrame(rows, columns=columns)
+
     return df
+
+
