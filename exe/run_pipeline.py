@@ -31,8 +31,8 @@ def main():
     print(f"Rows in shots not matched in odds: {len(unmatched_shots)}")
     print(f"Rows in odds not matched in shots: {len(unmatched_odds)}")
 
-    unmatched_shots.to_csv("unmatched_from_shots.csv", index=False)
-    unmatched_odds.to_csv("unmatched_from_odds.csv", index=False)
+    unmatched_shots.to_csv(output_dir / "unmatched_from_shots.csv", index=False)
+    unmatched_odds.to_csv(output_dir / "unmatched_from_odds.csv", index=False)
 
     odds_cleaned = remove_unmatched_odds(odds_processed, unmatched_odds)
 
@@ -41,7 +41,7 @@ def main():
     odds_with_match_id.to_csv(output_dir / "matches.csv", index=False)
 
     print("Generating game state timeline...")
-    game_state = generate_game_state_timeline(odds_with_match_id, goals, cards)
+    game_state = generate_game_state_timeline(odds_with_match_id, goals, cards, shots)
     game_state.to_csv(output_dir / "game_state_timeline.csv", index=False)
 
     print("Done.")
