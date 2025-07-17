@@ -88,6 +88,21 @@ def add_match_id_to_odds(odds: pd.DataFrame, shots: pd.DataFrame) -> pd.DataFram
 
     return odds_with_match_id
 
+def odds_to_probs(odds_with_match_id: pd.DataFrame) -> pd.DataFrame:
+
+    odds_with_match_id['psch'] = 1 / odds_with_match_id['psch']
+    odds_with_match_id['pscd'] = 1 / odds_with_match_id['pscd']
+    odds_with_match_id['psca'] = 1 / odds_with_match_id['psca']
+
+    odds_with_match_id['fav_prob'] = odds_with_match_id[['psch', 'psca']].max(axis=1)
+    odds_with_match_id['total_prob'] = odds_with_match_id[['psch', 'pscd', 'psca']].sum(axis=1)
+
+    odds_with_match_id['home_win'] = (odds_with_match_id['ftr'] == 'H')
+    odds_with_match_id['away_win'] = (odds_with_match_id['ftr'] == 'A')
+    odds_with_match_id['draw'] = (odds_with_match_id['ftr'] == 'D')
+
+    return odds_with_match_id
+
 
 
 def generate_game_state_timeline(odds_with_match_id: pd.DataFrame, goals: pd.DataFrame, cards: pd.DataFrame) -> pd.DataFrame:

@@ -24,7 +24,6 @@ def main():
     shots.to_csv(output_dir / "shots.csv", index=False)
     cards.to_csv(output_dir / "cards.csv", index=False)
     goals.to_csv(output_dir / "goals.csv", index=False)
-    odds_processed.to_csv(output_dir / "odds_cleaned.csv", index=False)
 
     print("Finding unmatched matches...")
     unmatched_shots, unmatched_odds = find_unmatched_matches(shots, odds_processed)
@@ -38,6 +37,8 @@ def main():
     odds_cleaned = remove_unmatched_odds(odds_processed, unmatched_odds)
 
     odds_with_match_id = add_match_id_to_odds(odds_cleaned, shots)
+    odds_with_match_id = odds_to_probs(odds_with_match_id)
+    odds_with_match_id.to_csv(output_dir / "matches.csv", index=False)
 
     print("Generating game state timeline...")
     game_state = generate_game_state_timeline(odds_with_match_id, goals, cards)
