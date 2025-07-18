@@ -181,6 +181,8 @@ def generate_game_state_timeline(
 
     final = home.merge(away, on=['match_id', 'minute'])
 
+    final['home_lead_before'] = final['home_goals_before'] - final['away_goals_before']
+
     # Add match-level information
     match_info_cols = ['match_id', 'home_team_id', 'away_team_id', 'hometeam', 'awayteam', 'date', 'country',
                        'league', 'season', 'psch', 'pscd', 'psca']
