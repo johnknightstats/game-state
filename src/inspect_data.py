@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import sys
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
 script_dir = Path(__file__).resolve().parent
 
 matches_path = script_dir.parent / "exe" / "output" / "matches.csv"
@@ -38,7 +40,7 @@ my_palette = ["#233D4D", "#FF9F1C", "#41EAD4", "#FDFFFC", "#F71735"]
 
 # Scatterplot to compare favourite probability with Pinnacle overround
 plt.figure(figsize=(8, 6))
-plt.scatter(matches['fav_prob'], matches['total_prob'], alpha=0.6)
+plt.scatter(matches['fav_prob'], matches['total_prob'], color=my_palette[0], alpha=0.6)
 plt.xlabel('Favorite Probability')
 plt.ylabel('Total Probability')
 plt.title('fav_prob vs. total_prob')
@@ -55,7 +57,7 @@ prob_result_map = {
 
 plt.figure(figsize=(10, 6))
 
-for prob_col, result_col in prob_result_map.items():
+for i, (prob_col, result_col) in enumerate(prob_result_map.items()):
     # Bin predicted probabilities into deciles
     matches[f'{prob_col}_decile'] = pd.qcut(matches[prob_col], q=10)
 
@@ -67,7 +69,7 @@ for prob_col, result_col in prob_result_map.items():
 
     # Plot
     plt.plot(grouped['mean_pred_prob'], grouped['mean_actual_result'],
-             marker='o', label=prob_col.upper())
+             marker='o', label=prob_col.upper(), color=my_palette[i])
 
 # Reference line x = y
 plt.plot([0, 1], [0, 1], 'k--', label='Perfect Calibration')
@@ -143,10 +145,11 @@ by_minute = gamestate_long.groupby('minute').agg(
 
 # Plot 1: Mean Goals by Minute
 plt.figure(figsize=(10, 6))
-sns.regplot(data=by_minute, x='minute', y='mean_goals', scatter=True, lowess=False)
+sns.regplot(data=by_minute, x='minute', y='mean_goals', scatter=True, lowess=False, color=my_palette[0])
 plt.title('Mean Goals by Minute')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
+plt.ylim(0, 0.025)
 plt.xticks(ticks=range(0,91, 10))
 plt.grid(True)
 plt.tight_layout()
@@ -154,7 +157,7 @@ plt.show()
 
 # Plot 2: Mean Shots by Minute
 plt.figure(figsize=(10, 6))
-sns.regplot(data=by_minute, x='minute', y='mean_shots', scatter=True, lowess=False)
+sns.regplot(data=by_minute, x='minute', y='mean_shots', scatter=True, lowess=False, color=my_palette[0])
 plt.title('Mean Shots by Minute')
 plt.xlabel('Minute')
 plt.ylabel('Mean Shots')
@@ -165,10 +168,11 @@ plt.show()
 
 # Plot 3: Mean xG by Minute
 plt.figure(figsize=(10, 6))
-sns.regplot(data=by_minute, x='minute', y='mean_xg', scatter=True, lowess=False)
+sns.regplot(data=by_minute, x='minute', y='mean_xg', scatter=True, lowess=False, color=my_palette[0])
 plt.title('Mean xG by Minute')
 plt.xlabel('Minute')
 plt.ylabel('Mean xG')
+plt.ylim(0, 0.03)
 plt.xticks(ticks=range(0,91, 10))
 plt.grid(True)
 plt.tight_layout()
@@ -221,6 +225,7 @@ for i, lead in enumerate(lead_values):
 plt.title('Smoothed Mean Goals by Minute for Each Lead')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
+plt.ylim(0, 0.03)
 plt.xticks(ticks=range(0, 91, 10))
 plt.grid(True)
 plt.legend(title='Lead')
@@ -241,6 +246,7 @@ for i, lead in enumerate(lead_values):
 plt.title('Smoothed Mean xG by Minute for Each Lead')
 plt.xlabel('Minute')
 plt.ylabel('Mean xG')
+plt.ylim(0, 0.03)
 plt.xticks(ticks=range(0, 91, 10))
 plt.grid(True)
 plt.legend(title='Lead')
@@ -273,6 +279,7 @@ for title_suffix, condition in filters.items():
     plt.title(f'Smoothed Mean Goals by Minute ({title_suffix})')
     plt.xlabel('Minute')
     plt.ylabel('Mean Goals')
+    plt.ylim(0, 0.03)
     plt.xticks(ticks=range(0, 91, 10))
     plt.grid(True)
     plt.legend(title='Lead')
@@ -293,8 +300,101 @@ for title_suffix, condition in filters.items():
     plt.title(f'Smoothed Mean xG by Minute ({title_suffix})')
     plt.xlabel('Minute')
     plt.ylabel('Mean xG')
+    plt.ylim(0, 0.03)
     plt.xticks(ticks=range(0, 91, 10))
     plt.grid(True)
     plt.legend(title='Lead')
     plt.tight_layout()
     plt.show()
+
+# ---- Show goals per min by quartile ----
+
+gamestate_long['pscw_bin'] = pd.qcut(gamestate_long['pscw'], q=4, labels=False)
+
+plt.figure(figsize=(12, 6))
+for i in sorted(gamestate_long['pscw_bin'].unique()):
+    subset = gamestate_long[gamestate_long['pscw_bin'] == i]
+    by_minute = subset.groupby('minute').agg(mean_goals=('goal_for', 'mean')).reset_index()
+
+    # Apply LOWESS smoothing
+    smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
+    plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
+
+plt.title('Smoothed Mean Goals by Minute')
+plt.xlabel('Minute')
+plt.ylabel('Mean Goals')
+plt.ylim(0, 0.03)
+plt.legend(title='Team Strength (Quartile)')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+neutral_state = gamestate_long[gamestate_long['lead_before'] == 0].copy()
+neutral_state['pscw_bin'] = pd.qcut(neutral_state['pscw'], q=4, labels=False)
+
+plt.figure(figsize=(12, 6))
+for i in sorted(neutral_state['pscw_bin'].unique()):
+    subset = neutral_state[neutral_state['pscw_bin'] == i]
+    by_minute = subset.groupby('minute').agg(mean_goals=('goal_for', 'mean')).reset_index()
+
+    # Apply LOWESS smoothing
+    smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
+    plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
+
+plt.title('Smoothed Mean Goals by Minute (Score is Level)')
+plt.xlabel('Minute')
+plt.ylabel('Mean Goals')
+plt.ylim(0, 0.03)
+plt.legend(title='Team Strength (Quartile)')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+
+
+# Filter to game states where score is level
+neutral_state = gamestate_long[gamestate_long['lead_before'] == 1].copy()
+neutral_state['pscw_bin'] = pd.qcut(neutral_state['pscw'], q=4, labels=False)
+
+plt.figure(figsize=(12, 6))
+for i in sorted(neutral_state['pscw_bin'].unique()):
+    subset = neutral_state[neutral_state['pscw_bin'] == i]
+    by_minute = subset.groupby('minute').agg(mean_goals=('goal_for', 'mean')).reset_index()
+
+    # Apply LOWESS smoothing
+    smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
+    plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
+
+plt.title('Smoothed Mean Goals by Minute (Leading by One Goal)')
+plt.xlabel('Minute')
+plt.ylabel('Mean Goals')
+plt.ylim(0, 0.03)
+plt.legend(title='Team Strength (Quartile)')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+one_down = gamestate_long[gamestate_long['lead_before'] == -1].copy()
+one_down['pscw_bin'] = pd.qcut(one_down['pscw'], q=4, labels=False)
+
+plt.figure(figsize=(12, 6))
+for i in sorted(one_down['pscw_bin'].unique()):
+    subset = one_down[one_down['pscw_bin'] == i]
+    by_minute = subset.groupby('minute').agg(mean_goals=('goal_for', 'mean')).reset_index()
+
+    smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
+    plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
+
+plt.title('Smoothed Mean Goals by Minute (Trailing by One Goal)')
+plt.xlabel('Minute')
+plt.ylabel('Mean Goals')
+plt.ylim(0, 0.03)
+plt.legend(title='Team Strength (Quartile)')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+output_path = script_dir.parent / "exe" / "output" / "gamestate_long.csv"
+gamestate_long.to_csv(output_path)
