@@ -3,6 +3,7 @@
 ### This script contains functions for inspecting the data ###
 ##############################################################
 
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -10,11 +11,12 @@ from pathlib import Path
 import sys
 from statsmodels.nonparametric.smoothers_lowess import lowess
 
-script_dir = Path(__file__).resolve().parent
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-matches_path = script_dir.parent / "exe" / "output" / "matches.csv"
-
+matches_path = os.path.join(parent_dir, 'exe/output/matches.csv')
 matches = pd.read_csv(matches_path)
+
+viz_path = os.path.join(parent_dir, 'viz')
 
 # ---- Custom styles and colours for plots ----
 
@@ -34,7 +36,13 @@ plt.rcParams.update({
     'axes.grid': True,
     'legend.facecolor': '#F5F5F5',
     'legend.edgecolor': '#DDDDDD',
-    'savefig.facecolor': '#E5E5E5'
+    'savefig.facecolor': '#E5E5E5',
+    'font.size': 14,
+    'axes.titlesize': 16,
+    'axes.labelsize': 14,
+    'xtick.labelsize': 12,
+    'ytick.labelsize': 12,
+    'legend.fontsize': 12,
 })
 
 my_palette = ["#233D4D", "#FF9F1C", "#41EAD4", "#FDFFFC", "#F71735"]
@@ -84,7 +92,7 @@ plt.show()
 
 # ---- Reshape gamestate data to both home & away team perspective ----
 
-gamestate_path = script_dir.parent / "exe" / "output" / "game_state_timeline.csv"
+gamestate_path = os.path.join(parent_dir, "exe/output/game_state_timeline.csv")
 
 gamestate = pd.read_csv(gamestate_path)
 
@@ -151,9 +159,11 @@ plt.title('Mean Goals by Minute')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.025)
-plt.xticks(ticks=range(0,91, 10))
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'mean_goals_by_minute.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 # ---- Plot mean shots by minute ----
@@ -162,7 +172,7 @@ sns.regplot(data=by_minute, x='minute', y='mean_shots', scatter=True, lowess=Fal
 plt.title('Mean Shots by Minute')
 plt.xlabel('Minute')
 plt.ylabel('Mean Shots')
-plt.xticks(ticks=range(0,91, 10))
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.tight_layout()
 plt.show()
@@ -174,7 +184,7 @@ plt.title('Mean xG by Minute')
 plt.xlabel('Minute')
 plt.ylabel('Mean xG')
 plt.ylim(0, 0.03)
-plt.xticks(ticks=range(0,91, 10))
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.tight_layout()
 plt.show()
@@ -191,17 +201,19 @@ for idx, col in enumerate(['0', '1', '2', '3+']):
     if col in lead_props.columns:
         plt.plot(
             lead_props['minute'], lead_props[col],
-            marker='o', label=f'Lead {col}',
+            marker='o', label=str(col),
             color=my_palette[idx]
         )
 
 plt.xlabel('Minute')
 plt.ylabel('Proportion')
 plt.title('Game State by Minute')
-plt.xticks(ticks=range(0, 91, 10))
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.legend(title='Lead')
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'game_state_by_minute.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 # ---- Plot loess-smoothed mean goals per minute for different leads ----
@@ -222,10 +234,12 @@ plt.title('Mean Goals per Minute by Lead (Loess Smoothed)')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
-plt.xticks(ticks=range(0, 91, 10))
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.legend(title='Lead')
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'mean_goals_per_minute_by_lead.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 # --- Plot xG instead of goals
@@ -243,7 +257,7 @@ plt.title('Mean xG per Minute by Lead (Smoothed)')
 plt.xlabel('Minute')
 plt.ylabel('Mean xG')
 plt.ylim(0, 0.03)
-plt.xticks(ticks=range(0, 91, 10))
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.legend(title='Lead')
 plt.tight_layout()
@@ -275,7 +289,7 @@ for title_suffix, condition in filters.items():
     plt.xlabel('Minute')
     plt.ylabel('Mean Goals')
     plt.ylim(0, 0.03)
-    plt.xticks(ticks=range(0, 91, 10))
+    plt.xticks([0, 15, 30, 45, 60, 75, 90])
     plt.grid(True)
     plt.legend(title='Lead')
     plt.tight_layout()
@@ -296,7 +310,7 @@ for title_suffix, condition in filters.items():
     plt.xlabel('Minute')
     plt.ylabel('Mean xG')
     plt.ylim(0, 0.03)
-    plt.xticks(ticks=range(0, 91, 10))
+    plt.xticks([0, 15, 30, 45, 60, 75, 90])
     plt.grid(True)
     plt.legend(title='Lead')
     plt.tight_layout()
@@ -315,13 +329,16 @@ for i in sorted(gamestate_long['pscw_bin'].unique()):
     smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
     plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
 
-plt.title('Mean Goals by Minute by Pre-Match Odds Quartile')
+plt.title('Mean Goals per Minute by Pre-Match Odds Quartile')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.legend(title='Quartile')
 plt.grid(True)
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'mean_goals_per_minute_by_odds.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 # ---- Plot quartiles when scores are level ----
@@ -338,13 +355,16 @@ for i in sorted(neutral_state['pscw_bin'].unique()):
     smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
     plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
 
-plt.title('Mean Goals by Minute (Scores Level)')
+plt.title('Mean Goals per Minute (Scores Level)')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.legend(title='Quartile')
 plt.grid(True)
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'mean_goals_per_minute_scores_level.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 # ---- Plot quartiles when team is one goal up ----
@@ -361,13 +381,16 @@ for i in sorted(neutral_state['pscw_bin'].unique()):
     smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
     plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
 
-plt.title('Mean Goals by Minute (Leading by One Goal)')
+plt.title('Mean Goals per Minute (Leading by One Goal)')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.legend(title='Quartile')
 plt.grid(True)
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'mean_goals_per_minute_one_up.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 # ---- Plot quartiles when team is one goal down ----
@@ -383,16 +406,19 @@ for i in sorted(one_down['pscw_bin'].unique()):
     smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
     plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
 
-plt.title('Mean Goals by Minute (Trailing by One Goal)')
+plt.title('Mean Goals per Minute (Trailing by One Goal)')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.legend(title='Quartile')
 plt.grid(True)
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'mean_goals_per_minute_one_down.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 # ---- Write the gamestate csv to file ----
 
-output_path = script_dir.parent / "exe" / "output" / "gamestate_long.csv"
+output_path = os.path.join(parent_dir, "exe/output/gamestate_long.csv")
 gamestate_long.to_csv(output_path)

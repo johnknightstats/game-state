@@ -10,6 +10,7 @@ from scipy.stats import chi2
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
 # ---- Custom styles and colours for plots ----
 
@@ -29,17 +30,25 @@ plt.rcParams.update({
     'axes.grid': True,
     'legend.facecolor': '#F5F5F5',
     'legend.edgecolor': '#DDDDDD',
-    'savefig.facecolor': '#E5E5E5'
+    'savefig.facecolor': '#E5E5E5',
+    'font.size': 14,
+    'axes.titlesize': 16,
+    'axes.labelsize': 14,
+    'xtick.labelsize': 12,
+    'ytick.labelsize': 12,
+    'legend.fontsize': 12,
 })
 
 my_palette = ["#233D4D", "#FF9F1C", "#41EAD4", "#FDFFFC", "#F71735"]
 
 # ---- Load data ----
 
-script_dir = Path(__file__).resolve().parent
-output_path = script_dir.parent / "exe" / "output" / "gamestate_long.csv"
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-df = pd.read_csv(output_path)
+gamestate_path = os.path.join(parent_dir, 'exe/output/gamestate_long.csv')
+df = pd.read_csv(gamestate_path)
+
+viz_path = os.path.join(parent_dir, 'viz')
 
 # ---- Categorize leads ----
 
@@ -177,9 +186,12 @@ plt.xlabel('Minute')
 plt.ylabel('Predicted Probability of Scoring')
 plt.title('Predicted Goal Probability by Minute (80% Fav vs. 20% Fav)')
 plt.ylim(0, None)
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'regression_80_20.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 
@@ -236,7 +248,10 @@ plt.xlabel('Minute')
 plt.ylabel('Predicted Probability of Scoring')
 plt.title('Predicted Goal Probability of 36% Fav by Lead')
 plt.ylim(0, None)
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'regression_36_36.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
