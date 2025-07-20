@@ -1,4 +1,9 @@
 
+#####################################################################
+### Pipeline to get required data from SQL database, process, and ###
+### create a csv containing game states by minute                 ###
+#####################################################################
+
 from pathlib import Path
 import sys
 sys.path.append(str(Path(__file__).resolve().parents[1]))
