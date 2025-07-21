@@ -418,6 +418,46 @@ save_path = os.path.join(viz_path, 'mean_goals_per_minute_one_down.png')
 plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
+# ---- All plots combined ----
+
+# Define line styles
+lead_styles = {0: '-', -1: '--', 1: ':'}
+lead_labels = {0: 'Level', -1: 'Trailing by 1', 1: 'Leading by 1'}
+
+plt.figure(figsize=(14, 7))
+
+# Loop over each game state
+for lead_before in [0, 1, -1]:
+    subset_df = gamestate_long[gamestate_long['lead_before'] == lead_before].copy()
+    subset_df['pscw_bin'] = pd.qcut(subset_df['pscw'], q=4, labels=False)
+
+    for i in sorted(subset_df['pscw_bin'].unique()):
+        subset = subset_df[subset_df['pscw_bin'] == i]
+        by_minute = subset.groupby('minute').agg(mean_goals=('goal_for', 'mean')).reset_index()
+
+        smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
+        plt.plot(
+            smoothed[:, 0], smoothed[:, 1],
+            label=f'Q {i+1} ({lead_labels[lead_before]})',
+            color=my_palette[i],
+            linestyle=lead_styles[lead_before]
+        )
+
+plt.title('Mean Goals per Minute by Pre-Match Odds and Lead')
+plt.xlabel('Minute')
+plt.ylabel('Mean Goals')
+plt.ylim(0, 0.03)
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
+plt.legend(title='Quartile and Game State', ncol=2)
+legend.get_frame().set_facecolor('lightgrey')
+legend.get_frame().set_edgecolor('black')
+plt.grid(True)
+plt.tight_layout()
+save_path = os.path.join(viz_path, 'mean_goals_per_minute_combined.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
+plt.show()
+
+
 # ---- Write the gamestate csv to file ----
 
 output_path = os.path.join(parent_dir, "exe/output/gamestate_long.csv")
