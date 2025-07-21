@@ -255,3 +255,72 @@ plt.tight_layout()
 save_path = os.path.join(viz_path, 'regression_36_36.png')
 plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
+
+
+# ---- Plot quartiles of pscw by game state (lead) ----
+
+# PSCW values are the medians from inspect_data script
+pscw_values = [0.157, 0.297, 0.433, 0.641]
+lead_cats = ['-1', '0', '1']
+lead_styles = {'-1': '--', '0': '-', '1': ':'}
+lead_labels = {'-1': 'Trailing by 1', '0': 'Level', '1': 'Leading by 1'}
+
+plt.figure(figsize=(14, 7))
+
+# Iterate over PSCW values (colour-coded)
+for i, pscw in enumerate(pscw_values):
+    color = my_palette[i]
+
+    # Iterate over lead categories (line pattern coded)
+    for lead_cat in lead_cats:
+        label = f"p={pscw:.3f}, {lead_labels[lead_cat]}"
+
+        predict_df = pd.DataFrame({
+            'minute': np.arange(1, 91),
+            'lead_cat': lead_cat,
+            'red_cards_before': 0,
+            'opp_red_cards_before': 0,
+            'pscw': pscw
+        })
+
+        predict_df['min1'] = (predict_df['minute'] == 1) | (predict_df['minute'] == 46)
+        predict_df['min2'] = (predict_df['minute'] == 2) | (predict_df['minute'] == 47)
+
+        predict_df_first = predict_df[predict_df['minute'] <= 45].copy()
+        predict_df_second = predict_df[predict_df['minute'] >= 46].copy()
+        predict_df_second['minute'] -= 45
+
+        cat_levels = ["-2 or less", "-1", "0", "1", "2 or more"]
+        predict_df_first['lead_cat'] = pd.Categorical(predict_df_first['lead_cat'], categories=cat_levels, ordered=True)
+        predict_df_second['lead_cat'] = pd.Categorical(predict_df_second['lead_cat'], categories=cat_levels, ordered=True)
+
+        predict_df_first['predicted_prob'] = model1.predict(predict_df_first)
+        predict_df_second['predicted_prob'] = model2i.predict(predict_df_second)
+
+        predict_df_second['minute'] += 45
+        full_pred = pd.concat([predict_df_first, predict_df_second], ignore_index=True)
+
+        plt.plot(
+            full_pred['minute'], full_pred['predicted_prob'],
+            label=label,
+            color=color,
+            linestyle=lead_styles[lead_cat]
+        )
+
+plt.axvline(45.5, color='gray', linestyle='--', label='Half Time')
+plt.xlabel('Minute')
+plt.ylabel('Predicted Probability of Scoring')
+plt.title('Predicted Goal Probability by Pre-Match Win Probability and Lead')
+plt.ylim(0, None)
+plt.xticks([0, 15, 30, 45, 60, 75, 90])
+plt.grid(True)
+
+# Legend with grey background
+legend = plt.legend(ncol=2, title='Pre-Match Win Prob. and Lead', loc='upper left')
+legend.get_frame().set_facecolor('lightgrey')
+legend.get_frame().set_edgecolor('black')
+
+plt.tight_layout()
+save_path = os.path.join(viz_path, 'combined_predictions_odds_lead.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
+plt.show()

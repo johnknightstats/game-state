@@ -155,7 +155,7 @@ by_minute = gamestate_long.groupby('minute').agg(
 
 plt.figure(figsize=(10, 6))
 sns.regplot(data=by_minute, x='minute', y='mean_goals', scatter=True, lowess=False, color=my_palette[0])
-plt.title('Mean Goals by Minute')
+plt.title('Mean Goals by Minute\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.025)
@@ -169,7 +169,7 @@ plt.show()
 # ---- Plot mean shots by minute ----
 plt.figure(figsize=(10, 6))
 sns.regplot(data=by_minute, x='minute', y='mean_shots', scatter=True, lowess=False, color=my_palette[0])
-plt.title('Mean Shots by Minute')
+plt.title('Mean Shots by Minute\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean Shots')
 plt.xticks([0, 15, 30, 45, 60, 75, 90])
@@ -180,7 +180,7 @@ plt.show()
 # ---- Plot mean xG by minute ----
 plt.figure(figsize=(10, 6))
 sns.regplot(data=by_minute, x='minute', y='mean_xg', scatter=True, lowess=False, color=my_palette[0])
-plt.title('Mean xG by Minute')
+plt.title('Mean xG by Minute\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean xG')
 plt.ylim(0, 0.03)
@@ -207,7 +207,7 @@ for idx, col in enumerate(['0', '1', '2', '3+']):
 
 plt.xlabel('Minute')
 plt.ylabel('Proportion')
-plt.title('Game State by Minute')
+plt.title('Game State by Minute\nBig 5 Leagues 2017-2025')
 plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.legend(title='Lead')
@@ -230,7 +230,7 @@ for i, lead in enumerate(lead_values):
             lowess=True, scatter=False, label=str(lead),
             color=my_palette[i]
         )
-plt.title('Mean Goals per Minute by Lead (Loess Smoothed)')
+plt.title('Mean Goals per Minute by Lead (Loess Smoothed)\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
@@ -253,7 +253,7 @@ for i, lead in enumerate(lead_values):
             lowess=True, scatter=False, label=f'Lead {lead}',
             color=my_palette[i]
         )
-plt.title('Mean xG per Minute by Lead (Smoothed)')
+plt.title('Mean xG per Minute by Lead (Smoothed)\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean xG')
 plt.ylim(0, 0.03)
@@ -285,7 +285,7 @@ for title_suffix, condition in filters.items():
                 lowess=True, scatter=False, label=f'Lead {lead}',
                 color=my_palette[i]
             )
-    plt.title(f'Smoothed Mean Goals by Minute ({title_suffix})')
+    plt.title(f'Smoothed Mean Goals by Minute ({title_suffix})\nBig 5 Leagues 2017-2025')
     plt.xlabel('Minute')
     plt.ylabel('Mean Goals')
     plt.ylim(0, 0.03)
@@ -306,7 +306,7 @@ for title_suffix, condition in filters.items():
                 lowess=True, scatter=False, label=f'Lead {lead}',
                 color=my_palette[i]
             )
-    plt.title(f'Smoothed Mean xG by Minute ({title_suffix})')
+    plt.title(f'Smoothed Mean xG by Minute ({title_suffix})\nBig 5 Leagues 2017-2025')
     plt.xlabel('Minute')
     plt.ylabel('Mean xG')
     plt.ylim(0, 0.03)
@@ -320,6 +320,12 @@ for title_suffix, condition in filters.items():
 
 gamestate_long['pscw_bin'] = pd.qcut(gamestate_long['pscw'], q=4, labels=False)
 
+# Group by bin and compute min, max, and median
+summary = gamestate_long.groupby('pscw_bin')['pscw'].agg(['min', 'median', 'max']).reset_index()
+summary['pscw_bin'] = summary['pscw_bin'] + 1  # so bins are 1 to 4
+summary.columns = ['Quartile', 'Min PSCW', 'Median PSCW', 'Max PSCW']
+print(summary)
+
 plt.figure(figsize=(12, 6))
 for i in sorted(gamestate_long['pscw_bin'].unique()):
     subset = gamestate_long[gamestate_long['pscw_bin'] == i]
@@ -329,7 +335,7 @@ for i in sorted(gamestate_long['pscw_bin'].unique()):
     smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
     plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
 
-plt.title('Mean Goals per Minute by Pre-Match Odds Quartile')
+plt.title('Mean Goals per Minute by Pre-Match Odds Quartile\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
@@ -355,7 +361,7 @@ for i in sorted(neutral_state['pscw_bin'].unique()):
     smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
     plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
 
-plt.title('Mean Goals per Minute (Scores Level)')
+plt.title('Mean Goals per Minute (Scores Level)\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
@@ -381,7 +387,7 @@ for i in sorted(neutral_state['pscw_bin'].unique()):
     smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
     plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
 
-plt.title('Mean Goals per Minute (Leading by One Goal)')
+plt.title('Mean Goals per Minute (Leading by One Goal)\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
@@ -406,7 +412,7 @@ for i in sorted(one_down['pscw_bin'].unique()):
     smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
     plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
 
-plt.title('Mean Goals per Minute (Trailing by One Goal)')
+plt.title('Mean Goals per Minute (Trailing by One Goal)\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
@@ -443,12 +449,12 @@ for lead_before in [0, 1, -1]:
             linestyle=lead_styles[lead_before]
         )
 
-plt.title('Mean Goals per Minute by Pre-Match Odds and Lead')
+plt.title('Mean Goals per Minute by Pre-Match Odds and Lead\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
 plt.ylabel('Mean Goals')
 plt.ylim(0, 0.03)
 plt.xticks([0, 15, 30, 45, 60, 75, 90])
-plt.legend(title='Quartile and Game State', ncol=2)
+legend = plt.legend(title='Quartile and Game State', ncol=2)
 legend.get_frame().set_facecolor('lightgrey')
 legend.get_frame().set_edgecolor('black')
 plt.grid(True)
