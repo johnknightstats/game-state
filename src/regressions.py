@@ -95,21 +95,45 @@ formula_int = 'goal_for ~ minute + C(lead_cat) + red_cards_before + opp_red_card
 print("\n=== Logistic Regression: First Half ===")
 model1 = smf.logit(formula=formula, data=first_half).fit()
 print(model1.summary())
+summary_df = model1.summary2().tables[1]  # Coefficient table
+html_table = summary_df.to_html(classes='table table-sm table-bordered', float_format="%.3f")
+regress_path = os.path.join(parent_dir, 'viz\\model1.html')
+with open(regress_path, 'w') as f:
+    f.write(html_table)
+
 
 # ---- Train logistic regression for second half ----
 print("\n=== Logistic Regression: Second Half ===")
 model2 = smf.logit(formula=formula, data=second_half).fit()
 print(model2.summary())
+summary_df = model2.summary2().tables[1]  # Coefficient table
+html_table = summary_df.to_html(classes='table table-sm table-bordered', float_format="%.3f")
+regress_path = os.path.join(parent_dir, 'viz\\model2.html')
+with open(regress_path, 'w') as f:
+    f.write(html_table)
+
 
 # ---- Train logistic regression for first half with interactions ----
 print("\n=== Logistic Regression: First Half ===")
 model1i = smf.logit(formula=formula_int, data=first_half).fit()
 print(model1i.summary())
+summary_df = model1i.summary2().tables[1]  # Coefficient table
+html_table = summary_df.to_html(classes='table table-sm table-bordered', float_format="%.3f")
+regress_path = os.path.join(parent_dir, 'viz\\model1i.html')
+with open(regress_path, 'w') as f:
+    f.write(html_table)
+
 
 # ---- Train logistic regression for second half with interactions ----
 print("\n=== Logistic Regression: Second Half ===")
 model2i = smf.logit(formula=formula_int, data=second_half).fit()
 print(model2i.summary())
+summary_df = model2i.summary2().tables[1]  # Coefficient table
+html_table = summary_df.to_html(classes='table table-sm table-bordered', float_format="%.3f")
+regress_path = os.path.join(parent_dir, 'viz\\model2i.html')
+with open(regress_path, 'w') as f:
+    f.write(html_table)
+
 
 # ---- Diagnostics to see which models perform best ----
 

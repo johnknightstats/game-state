@@ -187,6 +187,8 @@ plt.ylim(0, 0.03)
 plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 plt.tight_layout()
+save_path = os.path.join(viz_path, 'mean_xg_by_minute.png')
+plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 # ---- Plot lead by minute ----
@@ -333,7 +335,7 @@ for i in sorted(gamestate_long['pscw_bin'].unique()):
 
     # Apply LOWESS smoothing
     smoothed = lowess(by_minute['mean_goals'], by_minute['minute'], frac=0.2)
-    plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'Bin {i+1}', color=my_palette[i])
+    plt.plot(smoothed[:, 0], smoothed[:, 1], label=f'{i+1}', color=my_palette[i])
 
 plt.title('Mean Goals per Minute by Pre-Match Odds Quartile\nBig 5 Leagues 2017-2025')
 plt.xlabel('Minute')
