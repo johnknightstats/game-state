@@ -43,7 +43,8 @@ Scripts for extracting and preparing data from my SQL database (`run_pipeline.py
 ## 🛠 Requirements
 
 Install dependencies with:
-pip install -r requirements.txt
+
+`pip install -r requirements.txt`
 
 📄 License
 
