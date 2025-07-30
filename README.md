@@ -36,7 +36,7 @@ This project analyzes how the probability of scoring a goal varies throughout a 
 This repo does **not** include raw football match data, in accordance with data licensing restrictions.  
 To replicate this analysis, you’ll need to acquire your own event-level match data (many tutorials and repos exist for this purpose).
 
-Scripts for extracting and preparing data from a SQL database (`run_pipeline.py`, `data_load.py`, `process_data.py`) are **not included**.
+Scripts for extracting and preparing data from my SQL database (`run_pipeline.py`, `data_load.py`, `process_data.py`) are **not included**.
 
 ---
 
