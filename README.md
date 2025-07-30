@@ -3,7 +3,7 @@
 This project analyzes how the probability of scoring a goal varies throughout a football match depending on the **game state** — including minutes elapsed, current score, and other situational factors. Using logistic regression, the project quantifies minute-by-minute goal likelihood under different match conditions.
 
 📝 **Read the article**:  
-📘 [How Game State Affects Goal Probability](https://johnknightstats.com/posts/game_state/)
+📘 [How does scoring rate change in a football match based on time elapsed and game state?](https://johnknightstats.com/posts/game_state/)
 
 ---
 
