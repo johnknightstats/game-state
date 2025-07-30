@@ -9,6 +9,7 @@ from pathlib import Path
 from scipy.stats import chi2
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import seaborn as sns
 import os
 
@@ -84,6 +85,7 @@ second_half['minute'] = second_half['minute'] - 45
 second_half['min1'] = (second_half['minute'] == 1)
 second_half['min2'] = (second_half['minute'] == 2)
 
+
 # Standard regression formula
 formula = 'goal_for ~ minute + C(lead_cat) + red_cards_before + opp_red_cards_before' \
 ' + pscw + min1 + min2'
@@ -92,25 +94,153 @@ formula_int = 'goal_for ~ minute + C(lead_cat) + red_cards_before + opp_red_card
 ' + pscw + min1 + min2 + C(lead_cat):minute + C(lead_cat):pscw + C(lead_cat):red_cards_before + C(lead_cat):opp_red_cards_before'
 
 # ---- Train logistic regression for first half ----
+import os
+
+# Fit the model
 print("\n=== Logistic Regression: First Half ===")
 model1 = smf.logit(formula=formula, data=first_half).fit()
 print(model1.summary())
-summary_df = model1.summary2().tables[1]  # Coefficient table
-html_table = summary_df.to_html(classes='table table-sm table-bordered', float_format="%.3f")
-regress_path = os.path.join(parent_dir, 'viz\\model1.html')
-with open(regress_path, 'w') as f:
-    f.write(html_table)
+
+# Extract and rename for readability
+summary_df = model1.summary2().tables[1].copy()
+summary_df = summary_df.rename(columns={
+    'Coef.': 'Coefficient',
+    'Std.Err.': 'Std. Error',
+    'z': 'z-value',
+    'P>|z|': 'p-value',
+    '[0.025': 'CI Lower',
+    '0.975]': 'CI Upper'
+})
+summary_df = summary_df.round(3)
+
+# Create a mapping of original variable names to nicer labels
+var_names = {
+    'pscw': 'Pre-match Win Prob',
+    'C(lead_cat)[T.-1]': 'Trailing (-1)',
+    'C(lead_cat)[T.0]': 'Level (0)',
+    'C(lead_cat)[T.1]': 'Leading (1)',
+    'C(lead_cat)[T.2 or more]': 'Leading (2 or more)',
+    'red_cards_before': 'Red Card',
+    'opp_red_cards_before': 'Opponent Red Card',
+    'min1[T.True]': 'First Min of Half',
+    'min2[T.True]': 'Second Min of Half',
+    'minute': "Minute"
+}
+
+# Apply to the index
+summary_df.rename(index=var_names, inplace=True)
+
+
+# Convert to HTML table
+table_html = summary_df.to_html(classes='styled-regression-table', border=0)
+
+# Convert to HTML table
+table_html = summary_df.to_html(classes='styled-regression-table', border=0)
+
+# Combine into full HTML document
+fragment_html = f"""
+<style>
+.styled-regression-table {{
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 1em;
+}}
+.styled-regression-table th, .styled-regression-table td {{
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  text-align: right;
+}}
+.styled-regression-table th {{
+  background-color: #f2f2f2;
+}}
+.styled-regression-table tr:nth-child(even) {{
+  background-color: #f9f9f9;
+}}
+</style>
+<h2>Logistic Regression: First Half</h2>
+{table_html}
+"""
+
+# Save
+regress_path = os.path.join(parent_dir, 'viz', 'model1.html')
+os.makedirs(os.path.dirname(regress_path), exist_ok=True)
+
+with open(regress_path, 'w', encoding='utf-8') as f:
+    f.write(fragment_html)
+
 
 
 # ---- Train logistic regression for second half ----
 print("\n=== Logistic Regression: Second Half ===")
 model2 = smf.logit(formula=formula, data=second_half).fit()
 print(model2.summary())
-summary_df = model2.summary2().tables[1]  # Coefficient table
-html_table = summary_df.to_html(classes='table table-sm table-bordered', float_format="%.3f")
-regress_path = os.path.join(parent_dir, 'viz\\model2.html')
-with open(regress_path, 'w') as f:
-    f.write(html_table)
+# Extract and rename for readability
+summary_df = model2.summary2().tables[1].copy()
+summary_df = summary_df.rename(columns={
+    'Coef.': 'Coefficient',
+    'Std.Err.': 'Std. Error',
+    'z': 'z-value',
+    'P>|z|': 'p-value',
+    '[0.025': 'CI Lower',
+    '0.975]': 'CI Upper'
+})
+summary_df = summary_df.round(3)
+
+# Create a mapping of original variable names to nicer labels
+var_names = {
+    'pscw': 'Pre-match Win Prob',
+    'C(lead_cat)[T.-1]': 'Trailing (-1)',
+    'C(lead_cat)[T.0]': 'Level (0)',
+    'C(lead_cat)[T.1]': 'Leading (1)',
+    'C(lead_cat)[T.2 or more]': 'Leading (2 or more)',
+    'red_cards_before': 'Red Card',
+    'opp_red_cards_before': 'Opponent Red Card',
+    'min1[T.True]': 'First Min of Half',
+    'min2[T.True]': 'Second Min of Half',
+    'minute': "Minute"
+}
+
+# Apply to the index
+summary_df.rename(index=var_names, inplace=True)
+
+
+# Convert to HTML table
+table_html = summary_df.to_html(classes='styled-regression-table', border=0)
+
+# Combine into full HTML document
+fragment_html = f"""
+<style>
+.styled-regression-table {{
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 1em;
+}}
+.styled-regression-table th, .styled-regression-table td {{
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  text-align: right;
+}}
+.styled-regression-table th {{
+  background-color: #f2f2f2;
+}}
+.styled-regression-table tr:nth-child(even) {{
+  background-color: #f9f9f9;
+}}
+</style>
+<h2>Logistic Regression: Second Half</h2>
+{table_html}
+"""
+
+# Save
+regress_path = os.path.join(parent_dir, 'viz', 'model2.html')
+os.makedirs(os.path.dirname(regress_path), exist_ok=True)
+
+with open(regress_path, 'w', encoding='utf-8') as f:
+    f.write(fragment_html)
 
 
 # ---- Train logistic regression for first half with interactions ----
@@ -196,7 +326,7 @@ for i, scenario in enumerate(scenarios):
 
     # Predict
     predict_df_first['predicted_prob'] = model1.predict(predict_df_first)
-    predict_df_second['predicted_prob'] = model2i.predict(predict_df_second)
+    predict_df_second['predicted_prob'] = model2.predict(predict_df_second)
 
     # Combine and restore minute
     predict_df_second['minute'] = predict_df_second['minute'] + 45
@@ -257,7 +387,7 @@ for i, scenario in enumerate(scenarios):
 
     # Predict
     predict_df_first['predicted_prob'] = model1.predict(predict_df_first)
-    predict_df_second['predicted_prob'] = model2i.predict(predict_df_second)
+    predict_df_second['predicted_prob'] = model2.predict(predict_df_second)
 
     # Combine and restore minute
     predict_df_second['minute'] = predict_df_second['minute'] + 45
@@ -283,22 +413,19 @@ plt.show()
 
 # ---- Plot quartiles of pscw by game state (lead) ----
 
-# PSCW values are the medians from inspect_data script
+# Define PSCW and lead categories
 pscw_values = [0.157, 0.297, 0.433, 0.641]
 lead_cats = ['-1', '0', '1']
 lead_styles = {'-1': '--', '0': '-', '1': ':'}
 lead_labels = {'-1': 'Trailing by 1', '0': 'Level', '1': 'Leading by 1'}
+pscw_labels = [f"p = {p:.3f}" for p in pscw_values]
 
-plt.figure(figsize=(14, 7))
+plt.figure(figsize=(10, 6))
 
-# Iterate over PSCW values (colour-coded)
+# Plot all lines
 for i, pscw in enumerate(pscw_values):
     color = my_palette[i]
-
-    # Iterate over lead categories (line pattern coded)
     for lead_cat in lead_cats:
-        label = f"p={pscw:.3f}, {lead_labels[lead_cat]}"
-
         predict_df = pd.DataFrame({
             'minute': np.arange(1, 91),
             'lead_cat': lead_cat,
@@ -319,19 +446,18 @@ for i, pscw in enumerate(pscw_values):
         predict_df_second['lead_cat'] = pd.Categorical(predict_df_second['lead_cat'], categories=cat_levels, ordered=True)
 
         predict_df_first['predicted_prob'] = model1.predict(predict_df_first)
-        predict_df_second['predicted_prob'] = model2i.predict(predict_df_second)
+        predict_df_second['predicted_prob'] = model2.predict(predict_df_second)
 
         predict_df_second['minute'] += 45
         full_pred = pd.concat([predict_df_first, predict_df_second], ignore_index=True)
 
         plt.plot(
             full_pred['minute'], full_pred['predicted_prob'],
-            label=label,
             color=color,
             linestyle=lead_styles[lead_cat]
         )
 
-plt.axvline(45.5, color='gray', linestyle='--', label='Half Time')
+# Labels and aesthetics
 plt.xlabel('Minute')
 plt.ylabel('Predicted Probability of Scoring')
 plt.title('Predicted Goal Probability by Pre-Match Win Probability and Lead')
@@ -339,10 +465,40 @@ plt.ylim(0, None)
 plt.xticks([0, 15, 30, 45, 60, 75, 90])
 plt.grid(True)
 
-# Legend with grey background
-legend = plt.legend(ncol=2, title='Pre-Match Win Prob. and Lead', loc='upper left')
-legend.get_frame().set_facecolor('lightgrey')
-legend.get_frame().set_edgecolor('black')
+# ---- Custom Legend ----
+
+# Color legend: one per PSCW level
+color_handles = [
+    Line2D([0], [0], color=my_palette[i], lw=2, linestyle='-') for i in range(len(pscw_values))
+]
+# Color legend (left)
+color_legend = plt.legend(
+    color_handles,
+    pscw_labels,
+    title="Pre-Match Win Probability",
+    loc='upper left',
+    bbox_to_anchor=(0.01, 0.99)
+)
+
+# Style legend: one per lead category
+style_handles = [
+    Line2D([0], [0], color='black', lw=2, linestyle=lead_styles[cat]) for cat in lead_cats
+]
+style_legend = plt.legend(
+    style_handles,
+    [lead_labels[cat] for cat in lead_cats],
+    title="Lead State",
+    loc='upper left',
+    bbox_to_anchor=(0.25, 0.99)
+)
+
+# Add both legends
+plt.gca().add_artist(color_legend)
+
+# Light grey background
+for leg in [color_legend, style_legend]:
+    leg.get_frame().set_facecolor('lightgrey')
+    leg.get_frame().set_edgecolor('black')
 
 plt.tight_layout()
 save_path = os.path.join(viz_path, 'combined_predictions_odds_lead.png')

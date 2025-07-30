@@ -209,3 +209,22 @@ __marimo__/
 # Testing folder
 testing/
 exe/
+
+# Ignore data, database interaction, and output
+data/
+exe/output/
+exe/run_pipeline.py
+src/data_load.py
+src/process_data.py
+testing/
+
+# Byte-compiled files and cache
+__pycache__/
+*.py[cod]
+*.sqlite
+
+# Jupyter, logs, and misc
+.ipynb_checkpoints/
+*.log
+.DS_Store
+Thumbs.db

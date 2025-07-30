@@ -198,7 +198,7 @@ gamestate_long['lead_cat'] = gamestate_long['abs_lead'].apply(lambda x: str(int(
 lead_counts = gamestate_long.groupby(['minute', 'lead_cat']).size().unstack(fill_value=0)
 lead_props = lead_counts.div(lead_counts.sum(axis=1), axis=0).reset_index()
 
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 6))
 for idx, col in enumerate(['0', '1', '2', '3+']):
     if col in lead_props.columns:
         plt.plot(
@@ -222,7 +222,7 @@ plt.show()
 
 lead_values = [-2, -1, 0, 1, 2]
 
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 6))
 for i, lead in enumerate(lead_values):
     subset = gamestate_long[gamestate_long['lead_before'] == lead]
     if not subset.empty:
@@ -245,7 +245,7 @@ plt.savefig(save_path, dpi=300, bbox_inches='tight')
 plt.show()
 
 # --- Plot xG instead of goals
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 6))
 for i, lead in enumerate(lead_values):
     subset = gamestate_long[gamestate_long['lead_before'] == lead]
     if not subset.empty:
@@ -277,7 +277,7 @@ for title_suffix, condition in filters.items():
     filtered_data = gamestate_long[condition]
 
     # ---- Smoothed Mean Goals Plot ----
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(10, 6))
     for i, lead in enumerate(lead_values):
         subset = filtered_data[filtered_data['lead_before'] == lead]
         if not subset.empty:
@@ -298,7 +298,7 @@ for title_suffix, condition in filters.items():
     plt.show()
 
     # ---- Smoothed Mean xG Plot ----
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(10, 6))
     for i, lead in enumerate(lead_values):
         subset = filtered_data[filtered_data['lead_before'] == lead]
         if not subset.empty:
@@ -328,7 +328,7 @@ summary['pscw_bin'] = summary['pscw_bin'] + 1  # so bins are 1 to 4
 summary.columns = ['Quartile', 'Min PSCW', 'Median PSCW', 'Max PSCW']
 print(summary)
 
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 6))
 for i in sorted(gamestate_long['pscw_bin'].unique()):
     subset = gamestate_long[gamestate_long['pscw_bin'] == i]
     by_minute = subset.groupby('minute').agg(mean_goals=('goal_for', 'mean')).reset_index()
@@ -354,7 +354,7 @@ plt.show()
 neutral_state = gamestate_long[gamestate_long['lead_before'] == 0].copy()
 neutral_state['pscw_bin'] = pd.qcut(neutral_state['pscw'], q=4, labels=False)
 
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 6))
 for i in sorted(neutral_state['pscw_bin'].unique()):
     subset = neutral_state[neutral_state['pscw_bin'] == i]
     by_minute = subset.groupby('minute').agg(mean_goals=('goal_for', 'mean')).reset_index()
@@ -380,7 +380,7 @@ plt.show()
 neutral_state = gamestate_long[gamestate_long['lead_before'] == 1].copy()
 neutral_state['pscw_bin'] = pd.qcut(neutral_state['pscw'], q=4, labels=False)
 
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 6))
 for i in sorted(neutral_state['pscw_bin'].unique()):
     subset = neutral_state[neutral_state['pscw_bin'] == i]
     by_minute = subset.groupby('minute').agg(mean_goals=('goal_for', 'mean')).reset_index()
@@ -406,7 +406,7 @@ plt.show()
 one_down = gamestate_long[gamestate_long['lead_before'] == -1].copy()
 one_down['pscw_bin'] = pd.qcut(one_down['pscw'], q=4, labels=False)
 
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 6))
 for i in sorted(one_down['pscw_bin'].unique()):
     subset = one_down[one_down['pscw_bin'] == i]
     by_minute = subset.groupby('minute').agg(mean_goals=('goal_for', 'mean')).reset_index()
